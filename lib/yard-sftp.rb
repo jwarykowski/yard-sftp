@@ -1,0 +1,1 @@
+require File.dirname(__FILE__) + "/yard/core_ext/file.rb"
