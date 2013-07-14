@@ -14,7 +14,7 @@ In order to move your yard documentation to a remote location using SFTP you nee
      username: 'username'
      password: 'password'
      
-Once this is all setup hit `yard` at your command line as you normally would and each file will uploaded via SFTP as they are created. Please note that both the `.yardopts` and `doc` directories are uploaded!
+Once this is all setup hit `yard` at your command line as you normally would and each file will uploaded via SFTP as they are created. Please note that both the `.yardoc` and `doc` directories are uploaded!
 
 ### `.yardsftp` config file? Why?
 I've added a new `.yardsftp` so different projects can be uploaded to custom remote locations. I did attempt to add these to the global `.yard/config` file but there was no way to distinguish custom remote file paths between different projects! Please email if you have a good suggestion!
