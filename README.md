@@ -10,10 +10,10 @@ In order to move your yard documentation to a remote location using SFTP you nee
     :yard-sftp:
      host: 'example.com'
      base_path: '/home/public_html'
-     base_folder: 'project_one/'
+     base_folder: 'project_one'
      username: 'username'
      password: 'password'
-     
+
 Once this is all setup hit `yard` at your command line as you normally would and each file will uploaded via SFTP as they are created. Please note that both the `.yardoc` and `doc` directories are uploaded!
 
 ### `.yardsftp` config file? Why?
