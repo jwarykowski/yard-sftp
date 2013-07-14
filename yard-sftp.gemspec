@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.version     = YARDSFTP::VERSION
   s.date        = '2013-07-15'
   s.summary     = 'yard-sftp - securely transfer your yard documentation'
-  s.description = 'Move you new shiny documentation to a remote location with SFTP'
+  s.description = 'Move your new shiny documentation to a remote location with SFTP'
   s.author      = 'Jonathan Chrisp'
   s.email       = 'jonathan.chrisp@gmail.com'
   s.license     = 'MIT'
