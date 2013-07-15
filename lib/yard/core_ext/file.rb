@@ -65,7 +65,7 @@ class File
       elsif i == 1
         path = "#{BASE_PATH}/#{BASE_FOLDER}/#{directories[0]}/#{dir}"
       else
-        path = "#{BASE_PATH}/#{BASE_FOLDER}/#{directories.take(i-1).join('/')}/#{dir}"
+        path = "#{BASE_PATH}/#{BASE_FOLDER}/#{directories.take(i).join('/')}/#{dir}"
       end
 
       sftp_create_directory(path)
