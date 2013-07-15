@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec', '~> 2.13.0'
   s.add_development_dependency 'pry', '~> 0.9.12.2'
 
+  s.add_runtime_dependency 'net-sftp', '~> 2.1.2'
   s.add_runtime_dependency 'colored', '~> 1.2'
   s.add_runtime_dependency 'yard', '~> 0.8.6.2'
 

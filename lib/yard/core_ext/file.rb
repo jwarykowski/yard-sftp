@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'pry'
 require 'colored'
 require 'yaml'
 require 'net/sftp'
