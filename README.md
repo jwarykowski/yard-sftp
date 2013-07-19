@@ -1,5 +1,6 @@
-# yard-sftp
+[![Code Climate](https://codeclimate.com/github/jonathanchrisp/yard-sftp.png)](https://codeclimate.com/github/jonathanchrisp/yard-sftp)
 
+# yard-sftp
 Move your new shiny yard documentation to a remote location with SFTP!
 
 ## Getting Started
