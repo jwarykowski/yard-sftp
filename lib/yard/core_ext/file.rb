@@ -2,7 +2,6 @@ require 'fileutils'
 require 'colored'
 require 'yaml'
 require 'net/sftp'
-YAML::ENGINE.yamler = 'psych'
 
 class File
 
@@ -15,8 +14,7 @@ class File
     FileUtils.mkdir_p(dir) unless directory?(dir)
     open(file, *args, &block)
 
-    # Create base directory, file directories and upload file via sftp
-    sftp_create_base_directory
+    sftp_create_path("#{BASE_DIR}")
     sftp_file(file)
   end
 
@@ -24,86 +22,98 @@ class File
   #
   # @return [Hash] opts Hash
   def self.sftp_config
-    begin
       opts = YAML.load_file('.yardsftp')
     rescue Psych::SyntaxError
       abort 'Your .yardsftp file did not parse as expected!'.red.underline
     rescue Errno::ENOENT
       abort 'Your .yardsftp file is missing!'.red.underline
-    end
-
-    return opts
   end
 
   # Creates or returns sftp instance
   #
   # @return [Object] sftp instance
   def self.sftp
-    sftp ||= Net::SFTP.start(HOST, USER, :password => PWD)
+      tries ||= 3
+      connection ||= Net::SFTP.start(HOST, USER, :password => PWD)
+    rescue Errno::EADDRINUSE
+      log.progress('SSH Connection Error - retrying', nil)
+      retry unless (tries -= 1).zero?
+    else
+      connection
   end
 
   # Uploads file
+  #
+  # @param opts [String] file_path path of the file
   def self.sftp_file(file_path)
-    directories = sftp_split_all(file_path)
-    directories.pop #removes actual file from array
+    paths = sftp_split_all(file_path)
+    paths.pop
+    return if paths.include?(".yardoc")
 
-    unless directories.empty?
-      sftp_build_directories(directories)
+    unless paths.empty?
+      sftp_create_paths(paths)
     end
 
-    sftp.upload!(file_path, "#{BASE_PATH}/#{BASE_FOLDER}/#{file_path}")
+    sftp.upload!(file_path, "#{BASE_DIR}/#{file_path}")
+    log.progress("Uploaded #{file_path}", nil)
   end
 
-  # Creates directories
+  # Creates paths relevant for file
   #
-  # @param opts [Array] directories Array of directory names
-  def self.sftp_build_directories(directories)
-    directories.each.with_index do |dir, i|
-      if i == 0
-        path = "#{BASE_PATH}/#{BASE_FOLDER}/#{dir}"
-      elsif i == 1
-        path = "#{BASE_PATH}/#{BASE_FOLDER}/#{directories[0]}/#{dir}"
+  # @param opts [Array] paths Array of paths
+  def self.sftp_create_paths(paths)
+    paths.each.with_index do |p, i|
+      case i
+      when 0
+        sftp_create_path("#{BASE_DIR}/#{p}")
+      when 1
+        sftp_create_path("#{BASE_DIR}/#{paths[0]}/#{p}")
       else
-        path = "#{BASE_PATH}/#{BASE_FOLDER}/#{directories.take(i).join('/')}/#{dir}"
+        sftp_create_path("#{BASE_DIR}/#{paths.take(i).join('/')}/#{p}")
       end
-
-      sftp_create_directory(path)
     end
   end
 
-  # Creates base directory
-  def self.sftp_create_base_directory
-    unless sftp_directory_exists?("#{BASE_PATH}/#{BASE_FOLDER}")
-      sftp_create_directory("#{BASE_PATH}/#{BASE_FOLDER}")
-    end
-  end
-
-  # Creates base directory
+  # Creates paths or cleans out existing path files if they exist
   #
   # @param opts [String] path the path of directory
-  def self.sftp_create_directory(path)
-    unless sftp_directory_exists?(path)
-      sftp.mkdir(path).wait
+  def self.sftp_create_path(path)
+    unless sftp_path_exists?(path)
+      sftp.mkdir!(path)
+      log.progress("Created directory: #{path}", nil)
+    else
+      sftp.dir.foreach(path) do |f|
+        if !File.extname("#{path}/#{f.name}").empty? && f.attributes.mtime < UPLOAD_TIME
+          sftp_remove_path("#{path}/#{f.name}")
+        end
+      end
     end
   end
 
-  # Checks if the directory exists
+  # Checks if the path exists
   #
   # @param opts [String] path the path of directory
-  def self.sftp_directory_exists?(path)
-    begin
+  # @return [Boolean] returns boolean of result
+  def self.sftp_path_exists?(path)
       sftp.stat!(path)
-    rescue
+    rescue Net::SFTP::StatusException
       return false
     else
       return true
-    end
   end
 
-  # Splits file path
+  # Removes file
   #
-  # @param opts [String] path the path of directory
-  # @return [Array] returns array of directories
+  # @param opts [String] path the path of file
+  def self.sftp_remove_path(path)
+    sftp.remove!(path)
+    log.progress("Removed existing file: #{path}", nil)
+  end
+
+  # Splits path
+  #
+  # @param opts [String] path the path of file
+  # @return [Array] returns array of file path
   def self.sftp_split_all(path)
     head, tail = File.split(path)
     return [tail] if head == '.' || tail == '/'
@@ -116,6 +126,6 @@ class File
   HOST        = OPTS['yard-sftp']['host']
   USER        = OPTS['yard-sftp']['username']
   PWD         = OPTS['yard-sftp']['password']
-  BASE_PATH   = OPTS['yard-sftp']['base_path']
-  BASE_FOLDER = OPTS['yard-sftp']['base_folder']
+  BASE_DIR    = OPTS['yard-sftp']['base_path'] + '/' + OPTS['yard-sftp']['base_folder']
+  UPLOAD_TIME = Time.now.to_i
 end
