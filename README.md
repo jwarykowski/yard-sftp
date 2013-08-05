@@ -1,3 +1,4 @@
+[![Gem Version](https://badge.fury.io/rb/yard-sftp.png)](http://badge.fury.io/rb/yard-sftp)
 [![Code Climate](https://codeclimate.com/github/jonathanchrisp/yard-sftp.png)](https://codeclimate.com/github/jonathanchrisp/yard-sftp)
 
 # yard-sftp
