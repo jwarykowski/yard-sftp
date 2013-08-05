@@ -38,8 +38,6 @@ class File
     rescue Errno::EADDRINUSE
       log.progress('SSH Connection Error - retrying', nil)
       retry unless (tries -= 1).zero?
-    else
-      connection
   end
 
   # Uploads file
@@ -54,38 +52,49 @@ class File
       sftp_create_paths(paths)
     end
 
+    log.progress("Uploading #{file_path}", nil)
     sftp.upload!(file_path, "#{BASE_DIR}/#{file_path}")
-    log.progress("Uploaded #{file_path}", nil)
   end
 
   # Creates paths relevant for file
   #
   # @param opts [Array] paths Array of paths
   def self.sftp_create_paths(paths)
-    paths.each.with_index do |p, i|
-      case i
-      when 0
-        sftp_create_path("#{BASE_DIR}/#{p}")
-      when 1
-        sftp_create_path("#{BASE_DIR}/#{paths[0]}/#{p}")
-      else
-        sftp_create_path("#{BASE_DIR}/#{paths.take(i).join('/')}/#{p}")
+    # Check if path doesn't already exists
+    if sftp_path_exists?("#{BASE_DIR}/#{paths.join('/')}")
+      sftp_clean_path("#{BASE_DIR}/#{paths.join('/')}")
+    else
+      # Iterate through each path and create
+      paths.each.with_index do |p, i|
+        case i
+        when 0
+          sftp_create_path("#{BASE_DIR}/#{p}")
+        when 1
+          sftp_create_path("#{BASE_DIR}/#{paths[0]}/#{p}")
+        else
+          sftp_create_path("#{BASE_DIR}/#{paths.take(i).join('/')}/#{p}")
+        end
       end
     end
   end
 
-  # Creates paths or cleans out existing path files if they exist
+  # Creates path if it doesn't exist
   #
   # @param opts [String] path the path of directory
   def self.sftp_create_path(path)
     unless sftp_path_exists?(path)
+      log.progress("Creating directory: #{path}", nil)
       sftp.mkdir!(path)
-      log.progress("Created directory: #{path}", nil)
-    else
-      sftp.dir.foreach(path) do |f|
-        if !File.extname("#{path}/#{f.name}").empty? && f.attributes.mtime < UPLOAD_TIME
-          sftp_remove_path("#{path}/#{f.name}")
-        end
+    end
+  end
+
+  # Removes files from path if older than upload time
+  #
+  # @param opts [String] path the path of directory
+  def self.sftp_clean_path(path)
+   sftp.dir.foreach(path) do |f|
+      if !File.extname("#{path}/#{f.name}").empty? && f.attributes.mtime < UPLOAD_TIME
+        sftp_remove_path("#{path}/#{f.name}")
       end
     end
   end
@@ -106,8 +115,8 @@ class File
   #
   # @param opts [String] path the path of file
   def self.sftp_remove_path(path)
+    log.progress("Removing existing file: #{path}", nil)
     sftp.remove!(path)
-    log.progress("Removed existing file: #{path}", nil)
   end
 
   # Splits path
