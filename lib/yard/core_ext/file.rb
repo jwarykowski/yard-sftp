@@ -115,7 +115,6 @@ class File
   #
   # @param opts [String] path the path of file
   def self.sftp_remove_path(path)
-    log.progress("Removing existing file: #{path}", nil)
     sftp.remove!(path)
   end
 
