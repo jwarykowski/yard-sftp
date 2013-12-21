@@ -1,3 +1,4 @@
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/jonathanchrisp/yard-sftp/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 [![Gem Version](https://badge.fury.io/rb/yard-sftp.png)](http://badge.fury.io/rb/yard-sftp)
 [![Code Climate](https://codeclimate.com/github/jonathanchrisp/yard-sftp.png)](https://codeclimate.com/github/jonathanchrisp/yard-sftp)
 
@@ -16,9 +17,9 @@ In order to move your yard documentation to a remote location using SFTP you nee
      username: 'username'
      password: 'password'
 
-Once this is all setup hit `yard` at your command line as you normally would and each file will uploaded via SFTP as they are created. 
+Once this is all setup hit `yard` at your command line as you normally would and each file will uploaded via SFTP as they are created.
 
-Please note that only the `doc` directory is uploaded! When files are being uploaded all files within the directories will removed if they are older than the current upload time. 
+Please note that only the `doc` directory is uploaded! When files are being uploaded all files within the directories will removed if they are older than the current upload time.
 
 ### `.yardsftp` config file? Why?
 I've added a new `.yardsftp` so different projects can be uploaded to custom remote locations. I did attempt to add these to the global `.yard/config` file but there was no way to distinguish custom remote file paths between different projects! Please email if you have a good suggestion!
